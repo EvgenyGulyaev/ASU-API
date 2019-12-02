@@ -105,7 +105,7 @@ class Parser {
     }
     try {
       const { data = {} } = await axios.get(reqUrl);
-      const { choices = [], table = [] } = data;
+      const { choices = [], table = {} } = data;
       res.message = choices.length ? this.parseChoices(choices) : this.parseDataTable(table, type);
       res.keyboard = this.keyboard;
       return res;
@@ -113,6 +113,20 @@ class Parser {
     catch (e) {
       console.error('error', e);
       return res
+    }
+  }
+
+  async checkExist(name) {
+    let reqUrl = await this.generateUrl(name);
+    try {
+      const { data = {} } = await axios.get(reqUrl);
+      const { table = {} } = data;
+      const { name = '', group = '' } = table;
+      return { name, group };
+    }
+    catch (e) {
+      console.error('error', e);
+      return {}
     }
   }
 }
