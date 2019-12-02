@@ -1,13 +1,29 @@
 const axios = require('axios');
 const _sortBy = require('lodash/sortBy');
 const _chunk = require('lodash/chunk');
-const { url, messageError: message, choicesMsg, todayWeek } = require('./constants');
+const {
+  url,
+  messageError: message,
+  choicesMsg,
+  todayWeek,
+  curWeek,
+  nextWeek,
+  today,
+  tomorrow
+} = require('./constants');
 const { gem, calendar, currentGroup, free } = require('./emojis')
 
 const sort = (name) => {
   const [first, second] = name.split('-');
   return (+first[first.length - 1] * 100) + +second;
 };
+
+const getDay = () => {
+  const date = new Date();
+  const day = date.getDay();
+  if (!day) return 8;
+  return 1 + day;
+}
 
 class Parser {
   constructor() {
@@ -32,19 +48,40 @@ class Parser {
     return choicesMsg;
   }
 
-  parseDataTable({ week, table, name }) {
-    this.keyboard = {};
-    let res = `${currentGroup} Ваш запрос: ${name} ${currentGroup} \n`;
-    res += `${calendar} ${todayWeek} ${week} неделя семестра ${calendar} \n \n`;
-
+  parseDataToWeek(table, res) {
     for (let dayIndex = 2; dayIndex < table.length; dayIndex++) {
       for (let timeIndex = 0; timeIndex < table[dayIndex].length; timeIndex++) {
         const value = table[dayIndex][timeIndex] || `${free} ${free} ${free}`;
         res += !timeIndex ? `${gem} ${value} ${gem} \n` :
           `${table[0][timeIndex]} ${table[1][timeIndex]} ${value} \n `
       }
-      res+= '\n'
+      res += '\n'
     }
+    return res
+  }
+
+  parseDataTable({ week, table, name }, type) {
+    this.keyboard = {};
+    let res = `${currentGroup} Ваш запрос: ${name} ${currentGroup} \n`;
+    res += `${calendar} ${todayWeek} ${week} неделя семестра ${calendar} \n \n`;
+
+    if (type === curWeek || type === nextWeek) {
+      return this.parseDataToWeek(table, res)
+    }
+
+    let day = getDay();
+
+    if (type === today) {
+      const tableData = [table[0], table[1], table[day]];
+      return this.parseDataToWeek(tableData, res);
+    }
+
+    if (type === tomorrow) {
+      day = day > 7 ? 3 : day + 1;
+      const tableData = [table[0], table[1], table[day]];
+      return this.parseDataToWeek(tableData, res);
+    }
+
     return res
   }
 
@@ -59,13 +96,17 @@ class Parser {
     return asuUrl;
   }
 
-  async scrapData(name) {
+  async scrapData(name, type = curWeek, id = null, weekNumber = 1) {
     const res = { message, keyboard: {} };
-    const reqUrl = await this.generateUrl(name);
+    let reqUrl = await this.generateUrl(name);
+    const day = getDay();
+    if ((day > 7 && type === tomorrow) || type === nextWeek) {
+      reqUrl = `${url}group=${id}&week=${weekNumber + 1}`;
+    }
     try {
       const { data = {} } = await axios.get(reqUrl);
       const { choices = [], table = [] } = data;
-      res.message = choices.length ? this.parseChoices(choices) : this.parseDataTable(table);
+      res.message = choices.length ? this.parseChoices(choices) : this.parseDataTable(table, type);
       res.keyboard = this.keyboard;
       return res;
     }
