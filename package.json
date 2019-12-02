@@ -1,6 +1,6 @@
 {
   "name": "asu-api",
-  "version": "0.0.3",
+  "version": "0.0.10",
   "description": "Api for ASU",
   "main": "index.js",
   "scripts": {
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/EvgenyGulyaev/ASU-API#readme",
   "dependencies": {
-    "axios": "^0.19.0"
+    "axios": "^0.19.0",
+    "lodash": "^4.17.15"
   }
 }

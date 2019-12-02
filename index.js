@@ -1,5 +1,12 @@
 const axios = require('axios');
+const _sortBy = require('lodash/sortBy');
+const _chunk = require('lodash/chunk');
 const { url, messageError: message, choicesMsg, todayWeek } = require('./constants');
+
+const sort = (name) => {
+  const [first, second] = name.split('-');
+  return (+first[first.length-1]*100) + +second;
+};
 
 class Parser {
   constructor() {
@@ -8,21 +15,20 @@ class Parser {
   }
 
   parseChoices(choices) {
-    const buttons = choices.map(({ name }) => ({
+    const sortedChoices = _sortBy(choices, [({name}) => sort(name)]);
+    const buttons = sortedChoices.map(({ name }, i) => ({
       action: {
         type: 'text',
-        payload: {
-          button: name,
-        },
+        payload: { button: `${i} button` },
         label: name
       },
       color: 'primary',
     }));
     this.keyboard = {
-      one_time: false,
-      buttons
+      one_time: true,
+      buttons: _chunk(buttons, 4)
     };
-    return `${choicesMsg}\n`;
+    return choicesMsg;
   }
 
   parseDataTable({ week, table }) {
