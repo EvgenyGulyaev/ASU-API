@@ -96,11 +96,25 @@ class Parser {
     return asuUrl;
   }
 
-  async scrapData(name, type = curWeek, id = null, weekNumber = 1) {
+  async getWeek() {
+    try {
+      const { data } = await axios.get(`${url}group=1.htm`);
+      const { table = {} } = data;
+      const { week } = table;
+      return week;
+    }
+    catch (e) {
+      console.error('error', e);
+      return 0;
+    }
+  }
+
+  async scrapData(name, type = curWeek, id = null) {
     const res = { message, keyboard: {} };
     let reqUrl = await this.generateUrl(name);
     const day = getDay();
     if ((day > 7 && type === tomorrow) || type === nextWeek) {
+      const weekNumber = await this.getWeek();
       reqUrl = `${url}group=${id}&week=${weekNumber + 1}`;
     }
     try {
@@ -118,15 +132,25 @@ class Parser {
 
   async checkExist(name) {
     let reqUrl = await this.generateUrl(name);
+    const res = { name: '', group: '' };
     try {
       const { data = {} } = await axios.get(reqUrl);
-      const { table = {} } = data;
+      const { table = {}, choices = [] } = data;
+      if (choices.length) {
+        return {
+          choices: {
+            message: this.parseChoices(choices),
+            keyboard: this.keyboard,
+          },
+          ...res
+        }
+      }
       const { name = '', group = '' } = table;
       return { name, group };
     }
     catch (e) {
       console.error('error', e);
-      return {}
+      return res
     }
   }
 }

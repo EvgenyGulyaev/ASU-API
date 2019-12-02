@@ -3,8 +3,8 @@ module.exports = {
   messageError: 'Возникла ошибка, попробуйте позднее',
   choicesMsg: 'Выберите определенного человека',
   todayWeek: 'Сейчас',
-  curWeek: 'curWeek',
-  today: 'today',
-  tomorrow: 'tomorrow',
-  nextWeek: 'nextWeek',
+  curWeek: 'На Эту Неделю',
+  today: 'На Сегодня',
+  tomorrow: 'На Завтра',
+  nextWeek: 'На Следующую Неделю',
 }
