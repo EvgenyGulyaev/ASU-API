@@ -90,8 +90,10 @@ class Parser {
     if (+name.split('-')[1] === 1) {
       const { data = {} } = await axios.get(asuUrl);
       const { choices = [] } = data;
-      const { group } = choices.find(({ name }) => +name.split('-')[1] === 1);
-      return `${url}group=${group}`;
+      if(choices.length){
+        const { group } = choices.find(({ name }) => +name.split('-')[1] === 1);
+        return `${url}group=${group}`;
+      }
     }
     return asuUrl;
   }
